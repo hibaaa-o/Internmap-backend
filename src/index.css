@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* خط المشروع */
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+}
+
+/* تحسين العرض */
+* {
+  box-sizing: border-box;
+}
+
+/* إزالة الستايل الافتراضي */
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+}
+
+/* smooth */
+html {
+  scroll-behavior: smooth;
+}
