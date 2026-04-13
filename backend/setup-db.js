@@ -1,41 +1,90 @@
 #!/usr/bin/env node
 /**
  * Database Setup Helper
- * This script creates the 'internmap' database if it doesn't exist
+ * Creates the 'internmap' database AND all required tables
  */
 
 const { Client } = require('pg');
 
 async function setupDatabase() {
-  const client = new Client({
+  // Connect to default postgres DB first
+  const rootClient = new Client({
     user: 'postgres',
     host: 'localhost',
     password: 'sixbits',
     port: 5432,
+    database: 'postgres'
   });
 
   try {
     console.log('🔗 Connecting to PostgreSQL server...');
-    await client.connect();
+    await rootClient.connect();
 
     console.log('📊 Creating "internmap" database...');
-    await client.query('CREATE DATABASE internmap;');
-
+    await rootClient.query('CREATE DATABASE internmap;');
     console.log('✅ Database created successfully!');
-    console.log('\n📝 Next steps:');
-    console.log('   1. Create a .env file with:');
-    console.log('      PORT=5000');
-    console.log('      JWT_SECRET=your_secret_key');
-    console.log('   2. Run: npm run dev');
-    console.log('   3. Tables will be created automatically\n');
   } catch (err) {
     if (err.message.includes('already exists')) {
       console.log('✅ Database "internmap" already exists!');
     } else {
-      console.error('❌ Error:', err.message);
+      console.error('❌ Error creating database:', err.message);
     }
   } finally {
-    await client.end();
+    await rootClient.end();
+  }
+
+  // Now connect to internmap DB to create tables
+  const dbClient = new Client({
+    user: 'postgres',
+    host: 'localhost',
+    password: 'sixbits',
+    port: 5432,
+    database: 'internmap'
+  });
+
+  try {
+    await dbClient.connect();
+    console.log('🛠️ Creating tables...');
+
+    await dbClient.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255),
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ users table checked/created');
+
+    await dbClient.query(`
+      CREATE TABLE IF NOT EXISTS internships (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255),
+        description TEXT,
+        location VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ internships table checked/created');
+
+    await dbClient.query(`
+      CREATE TABLE IF NOT EXISTS applications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        internship_id INTEGER REFERENCES internships(id),
+        status VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ applications table checked/created');
+
+    console.log('🎉 All tables created successfully!');
+  } catch (err) {
+    console.error('❌ Error creating tables:', err.message);
+  } finally {
+    await dbClient.end();
   }
 }
 
