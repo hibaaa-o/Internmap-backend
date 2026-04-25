@@ -10,7 +10,6 @@ export default function Layout() {
   const isDashboard =
     location.pathname.includes("dashboard") ||
     location.pathname.includes("applications") ||
-    location.pathname.includes("saved") ||
     location.pathname.includes("add-internship") ||
     location.pathname.includes("applicants") ||
     location.pathname.includes("profile"); // ⭐ الإضافة الوحيدة

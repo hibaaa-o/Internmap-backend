@@ -1,29 +1,38 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const pool = require('./db');
 
-// auth routes & middleware
+// routes
 const authRoutes = require('./routes/auth');
-const { authenticate, authorizeRoles } = require('./middleware/auth');
+const internshipsRoutes = require('./routes/internships');
+const applicationsRoutes = require('./routes/applications');
+const adminRoutes = require('./routes/admin');
+const profileRoutes = require('./routes/profile');
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// make sure required tables exist
+// serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 async function initDb() {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         role TEXT NOT NULL DEFAULT 'user',
+        full_name TEXT,
+        phone TEXT,
+        cv_name TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log('users table checked/created');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS internships (
@@ -34,11 +43,16 @@ async function initDb() {
         location TEXT,
         start_date DATE,
         end_date DATE,
+        requirements TEXT,
+        working_hours TEXT,
+        experience_level TEXT,
+        internship_type TEXT,
+        skills TEXT,
+        created_by INTEGER,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log('internships table checked/created');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS applications (
@@ -51,16 +65,23 @@ async function initDb() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log('applications table checked/created');
 
+    console.log('Database ready ✅');
   } catch (err) {
-    console.error('error creating tables', err);
+    console.error('DB init error ❌', err);
   }
 }
+
 initDb();
 
+app.use('/auth', authRoutes);
+app.use('/internships', internshipsRoutes);
+app.use('/applications', applicationsRoutes);
+app.use('/admin', adminRoutes);
+app.use('/profile', profileRoutes);
+
 app.get('/', (req, res) => {
-  res.json({ message: 'InternMap backend is running!' });
+  res.json({ message: 'InternMap backend is running 🚀' });
 });
 
 app.get('/test-db', async (req, res) => {
@@ -68,27 +89,11 @@ app.get('/test-db', async (req, res) => {
     const result = await pool.query('SELECT NOW()');
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
     res.status(500).send('Database error');
   }
 });
 
-// mount authentication endpoints
-app.use('/auth', authRoutes);
-
-// internship endpoints
-const internshipsRoutes = require('./routes/internships');
-app.use('/internships', internshipsRoutes);
-
-// applications endpoints
-const applicationsRoutes = require('./routes/applications');
-app.use('/applications', applicationsRoutes);
-
-// admin dashboard endpoints (all routes protected inside)
-const adminRoutes = require('./routes/admin');
-app.use('/admin', adminRoutes);
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} 🚀`);
 });

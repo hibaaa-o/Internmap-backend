@@ -1,172 +1,235 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
-  Search,
   MapPin,
+  Briefcase,
   Clock,
-  DollarSign,
-  SlidersHorizontal,
-  X,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
-function Browse() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-  const [selectedLocation, setSelectedLocation] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
+type Internship = {
+  id: number;
+  title: string;
+  company: string;
+  location?: string;
+  description?: string;
+  requirements?: string;
+  working_hours?: string;
+  experience_level?: string;
+  internship_type?: string;
+  skills?: string;
+};
 
+export default function Browse() {
+  const [internships, setInternships] = useState<Internship[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  const internships = [
-    {
-      id: 1,
-      title: "Frontend Developer Intern",
-      company: "STC",
-      location: "Riyadh",
-      type: "Full-time",
-      tags: ["React", "JavaScript", "UI"],
-      description: "Work on modern web apps using React.",
-      duration: "3 months",
-      salary: "3000 SAR",
-      posted: "2 days ago",
-    },
-    {
-      id: 2,
-      title: "UI/UX Designer Intern",
-      company: "Aramco",
-      location: "Dhahran",
-      type: "Part-time",
-      tags: ["Figma", "UX", "Design"],
-      description: "Design user experiences for real products.",
-      duration: "6 months",
-      salary: null,
-      posted: "5 days ago",
-    },
-  ];
+  useEffect(() => {
+    fetch("http://localhost:5000/internships")
+      .then((res) => res.json())
+      .then((data) => {
+        setInternships(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-  const filteredInternships = useMemo(() => {
-    return internships.filter((i) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        i.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        i.company.toLowerCase().includes(searchQuery.toLowerCase());
+  const handleApply = async (internshipId: number) => {
+  const token = localStorage.getItem("token");
 
-      const matchesType = selectedType === "all" || i.type === selectedType;
-      const matchesLocation =
-        selectedLocation === "all" || i.location === selectedLocation;
+  if (!token) {
+    alert("You must login first");
+    return;
+  }
 
-      return matchesSearch && matchesType && matchesLocation;
+  try {
+    // check profile first
+    const profileRes = await fetch("http://localhost:5000/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-  }, [searchQuery, selectedType, selectedLocation]);
+
+    const profileData = await profileRes.json();
+
+    if (!profileRes.ok) {
+      alert("Failed to load profile");
+      return;
+    }
+
+    if (!profileData.full_name || !profileData.cv_name) {
+      alert("Please complete your profile and add your CV before applying");
+      return;
+    }
+
+    const res = await fetch("http://localhost:5000/applications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        internship_id: internshipId,
+        cover_letter: "I am interested in this internship.",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Applied successfully");
+    } else {
+      alert(data.error || "Application failed");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+};
+  const toggleDetails = (id: number) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  if (loading) {
+    return <p className="p-8">Loading internships...</p>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/*  Hero */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 py-16 text-center text-white">
-        <h1 className="text-4xl font-bold mb-4">
-          Find Your Dream Internship
-        </h1>
-        <p className="text-purple-200 mb-8">
-          Explore opportunities across Saudi Arabia
-        </p>
+    <div className="p-8 bg-gray-50 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">
+        Browse Internships
+      </h1>
 
-        {/*  Search */}
-        <div className="max-w-2xl mx-auto bg-white p-2 rounded-xl flex gap-2">
-          <input
-            type="text"
-            placeholder="Search internships..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-3 outline-none text-black"
-          />
+      {internships.length === 0 ? (
+        <p>No internships available yet.</p>
+      ) : (
+        <div className="grid gap-6">
+          {internships.map((item) => {
+            const isExpanded = expandedId === item.id;
 
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 bg-gray-100 rounded-lg"
-          >
-            <SlidersHorizontal />
-          </button>
+            return (
+              <div
+                key={item.id}
+                className="bg-white border rounded-3xl p-6 shadow-sm hover:shadow-md transition"
+              >
+                {/* Top */}
+                <div className="mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {item.title}
+                  </h2>
+                  <p className="text-lg text-gray-700 mt-1">{item.company}</p>
+                </div>
 
-          <button className="px-6 bg-purple-600 text-white rounded-lg">
-            Search
-          </button>
+                {/* Main info */}
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-5">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-purple-500" />
+                    <span>{item.location || "No location"}</span>
+                  </div>
+
+                  {item.internship_type && (
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-purple-500" />
+                      <span>{item.internship_type}</span>
+                    </div>
+                  )}
+
+                  {item.working_hours && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-purple-500" />
+                      <span>{item.working_hours}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Buttons */}
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <button
+                    onClick={() => handleApply(item.id)}
+                    className="bg-purple-600 text-white px-5 py-2.5 rounded-xl hover:bg-purple-700 transition"
+                  >
+                    Apply
+                  </button>
+
+                  <button
+                    onClick={() => toggleDetails(item.id)}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 transition"
+                  >
+                    {isExpanded ? "Hide Details" : "View Details"}
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Expanded details */}
+                {isExpanded && (
+                  <div className="pt-4 border-t space-y-4">
+                    {item.description && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                          Description
+                        </h3>
+                        <p className="text-sm text-gray-600 leading-6">
+                          {item.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {item.requirements && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                          Requirements
+                        </h3>
+                        <div className="flex items-start gap-2 text-sm text-gray-600">
+                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                          <p className="leading-6">{item.requirements}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {item.experience_level && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                          Experience Level
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {item.experience_level}
+                        </p>
+                      </div>
+                    )}
+
+                    {item.skills && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                          Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {item.skills.split(",").map((skill, index) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 text-xs rounded-full bg-purple-100 text-purple-700"
+                            >
+                              {skill.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-
-        {/* Filters */}
-        {showFilters && (
-          <div className="bg-white text-black mt-4 p-4 rounded-xl max-w-2xl mx-auto">
-            <div className="flex justify-between mb-3">
-              <h3 className="font-bold">Filters</h3>
-              <X
-                className="cursor-pointer"
-                onClick={() => setShowFilters(false)}
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="p-2 border rounded"
-              >
-                <option value="all">All Types</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-              </select>
-
-              <select
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="p-2 border rounded"
-              >
-                <option value="all">All Locations</option>
-                <option value="Riyadh">Riyadh</option>
-                <option value="Dhahran">Dhahran</option>
-              </select>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/*  Cards */}
-      <div className="p-6 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredInternships.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition"
-          >
-            <h2 className="text-lg font-bold mb-2">{item.title}</h2>
-            <p className="text-gray-600">{item.company}</p>
-
-            <div className="flex items-center gap-1 text-sm text-gray-500 mb-3">
-              <MapPin className="w-4 h-4 text-purple-500" />
-              {item.location}
-            </div>
-
-            <p className="text-sm text-gray-600 mb-4">
-              {item.description}
-            </p>
-
-            <div className="flex justify-between text-sm mb-4">
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {item.duration}
-              </span>
-
-              {item.salary && (
-                <span className="flex items-center gap-1 text-green-600">
-                  <DollarSign className="w-4 h-4" />
-                  {item.salary}
-                </span>
-              )}
-            </div>
-
-            <button className="w-full bg-purple-600 text-white py-2 rounded-lg">
-              Apply Now
-            </button>
-          </div>
-        ))}
-      </div>
+      )}
     </div>
   );
 }
-
-export default Browse;
