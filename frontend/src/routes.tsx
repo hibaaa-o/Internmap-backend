@@ -113,8 +113,6 @@ export default function Applications() {
 
 import AddInternship from "./pages/AddInternship";
 import Applicants from "./pages/Applicants";
-
-
 import Profile from "./pages/Profile";
 
 export const router = createBrowserRouter([
@@ -146,7 +144,7 @@ export const router = createBrowserRouter([
   element: <ForgotPassword />,
 },
 {
-  path: "/reset-password",
+  path: "/reset-password/:token",
   element: <ResetPassword />,
 },
   // صفحات بعد تسجيل الدخول

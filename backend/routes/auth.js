@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const pool = require('../db');
+const nodemailer = require("nodemailer");
 
 const router = express.Router();
 
@@ -17,6 +18,19 @@ function generateToken(user) {
   const opts = { expiresIn: '1h' };
   return jwt.sign(payload, secret, opts);
 }
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 
 // register a new user
 router.post('/register', async (req, res) => {
@@ -100,14 +114,12 @@ router.post('/forgot-password', async (req, res) => {
 
   try {
     const userResult = await pool.query(
-      'SELECT id, email FROM users WHERE email = $1',
+      'SELECT id FROM users WHERE email = $1',
       [email]
     );
 
     if (userResult.rowCount === 0) {
-      return res.json({
-        message: 'If email exists, reset link sent',
-      });
+      return res.status(404).json({ error: 'Email not found' });
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -122,16 +134,26 @@ router.post('/forgot-password', async (req, res) => {
 
     const resetLink = `http://localhost:5173/reset-password/${token}`;
 
-    res.json({
-      message: 'Reset link generated successfully',
-      resetLink,
+    console.log("📩 Sending email to:", email);
+
+    await transporter.sendMail({
+      from: `"InternMap" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset Your Password",
+      html: `
+        <h2>Reset Password</h2>
+        <p>Click the link below:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>This link expires in 15 minutes</p>
+      `,
     });
+
+    res.json({ message: 'Email sent' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'server error' });
+    console.error('FORGOT PASSWORD ERROR:', err);
+    res.status(500).json({ error: 'err.message' });
   }
 });
-
 // reset password
 router.post('/reset-password/:token', async (req, res) => {
   const { token } = req.params;

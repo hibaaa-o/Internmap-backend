@@ -9,6 +9,13 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+const cityCoords: Record<string, [number, number]> = {
+  Riyadh: [24.7136, 46.6753],
+  Dammam: [26.4207, 50.0888],
+  Khobar: [26.2794, 50.2083],
+  Jeddah: [21.5433, 39.1728],
+};
+
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -261,28 +268,24 @@ export default function MapView() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            {filtered.map((i) => (
-              <Marker key={i.id} position={[i.lat, i.lng]}>
-                <Popup>
-                  <div className="min-w-[180px] space-y-2">
-                    <h2 className="font-bold text-base text-gray-900">
-                      {i.title}
-                    </h2>
-                    <p className="text-sm text-gray-700">
-                      Company: {i.company}
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      City: {i.location}
-                    </p>
-                    {i.description && (
-                      <p className="text-sm text-gray-500">
-                        {i.description}
-                      </p>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+    {filtered.map((i) => {
+  const coords = cityCoords[i.location as keyof typeof cityCoords];
+  console.log("LOCATION:", i.location, "COORDS:", coords);
+
+  if (!coords) return null;
+
+  return (
+    <Marker key={i.id} position={coords}>
+      <Popup>
+        <div className="min-w-[180px] space-y-2">
+          <h2 className="font-bold text-base text-gray-900">{i.title}</h2>
+          <p className="text-sm text-gray-700">Company: {i.company}</p>
+          <p className="text-sm text-gray-700">City: {i.location}</p>
+        </div>
+      </Popup>
+    </Marker>
+  );
+})}
           </MapContainer>
         </div>
       )}

@@ -94,20 +94,6 @@ export default function Login() {
           </form>
 
           <div className="mt-6 space-y-3">
-            <button
-  onClick={() => {
-    window.location.href = "http://localhost:5000/auth/google";
-  }}
-  className="w-full h-12 border rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50"
->
-  <img
-    src="https://www.svgrepo.com/show/475656/google-color.svg"
-    className="w-5 h-5"
-    alt="Google"
-  />
-  Continue with Google
-</button>
-
           </div>
 
           <p className="text-center mt-6 text-sm text-gray-600">

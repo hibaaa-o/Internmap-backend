@@ -1,12 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, LayoutGrid, Map, Bell, User } from "lucide-react";
+import { Home, LayoutGrid, Map, User } from "lucide-react";
 import { useState } from "react";
 
 export default function Topbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
@@ -69,35 +68,12 @@ export default function Topbar() {
 
       </div>
 
-      {/* Right */}
-      <div className="flex items-center gap-4 relative">
-
-        {/* 🔔 Notifications */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setShowNotif(!showNotif);
-              setShowProfile(false);
-            }}
-            className="p-2 rounded-lg hover:bg-gray-100"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
-
-          {showNotif && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border rounded-xl shadow-lg p-4 z-50">
-              <p className="text-sm font-semibold mb-2">Notifications</p>
-              <p className="text-sm text-gray-600">No new notifications</p>
-            </div>
-          )}
-        </div>
-
         {/* 👤 Profile */}
         <div className="relative">
           <button
             onClick={() => {
               setShowProfile(!showProfile);
-              setShowNotif(false);
+              
             }}
             className="p-2 rounded-xl border hover:bg-gray-100"
           >
@@ -130,6 +106,5 @@ export default function Topbar() {
         </div>
 
       </div>
-    </div>
   );
 }
