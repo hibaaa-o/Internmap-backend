@@ -3,7 +3,6 @@ import { User } from "lucide-react";
 import {
   LayoutGrid,
   FileText,
-  Bookmark,
   Home,
   LogOut,
 } from "lucide-react";
@@ -46,10 +45,6 @@ export default function Sidebar() {
             My Applications
           </NavLink>
 
-          <NavLink to="/saved" className={linkClass}>
-            <Bookmark className="w-5 h-5" />
-            Saved Internships
-          </NavLink>
 
           <NavLink to="/profile" className={linkClass}>
   <User className="w-5 h-5" />

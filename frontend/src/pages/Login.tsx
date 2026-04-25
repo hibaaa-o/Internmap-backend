@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
+import bgImage from "../assets/office.jpg";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -8,20 +10,40 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("user", "student");
-    navigate("/home");
+
+    try {
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/home");
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-
-      {/* LEFT */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
-
-          {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center shadow-lg">
               <MapPin className="text-white" />
@@ -32,7 +54,6 @@ export default function Login() {
             </h1>
           </div>
 
-          {/* Switch */}
           <button
             onClick={() => navigate("/company-login")}
             className="w-full mb-5 border border-purple-600 text-purple-600 h-12 rounded-xl hover:bg-purple-50 transition"
@@ -40,9 +61,7 @@ export default function Login() {
             Switch to Company
           </button>
 
-          {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5">
-
             <input
               type="email"
               placeholder="Email"
@@ -60,29 +79,23 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="text-right mt-2 mb-4">
+  <Link
+    to="/forgot-password"
+    className="text-sm text-purple-600 hover:underline"
+  >
+    Forgot Password?
+  </Link>
+</div>
 
             <button className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl shadow-lg hover:opacity-90 transition">
               Sign In
             </button>
-
           </form>
 
-          {/* Social */}
           <div className="mt-6 space-y-3">
-
-            <button className="w-full h-12 border rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50">
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5"/>
-              Continue with Google
-            </button>
-
-            <button className="w-full h-12 border rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50">
-              <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" className="w-5 h-5"/>
-              Continue with Facebook
-            </button>
-
           </div>
 
-          {/* Create */}
           <p className="text-center mt-6 text-sm text-gray-600">
             Don’t have an account?{" "}
             <span
@@ -92,17 +105,28 @@ export default function Login() {
               Create account
             </span>
           </p>
-
         </div>
       </div>
 
-      {/* RIGHT */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900 items-center justify-center text-white">
-        <h2 className="text-4xl font-bold">
-          Discover Your Future !
-        </h2>
-      </div>
+      <div
+  className="w-1/2 relative flex items-center justify-center"
+  style={{
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  }}
+>
+  {/* اللون البنفسجي */}
+  <div className="absolute inset-0 bg-gradient-to-r from-purple-800/40 to-purple-500/20"></div>
 
+  {/* النص */}
+  <h1
+    className="relative text-3xl md:text-4xl font-bold text-white text-center px-6"
+    style={{ fontFamily: "Poppins, sans-serif" }}
+  >
+    Discover Your Future!
+  </h1>
+</div>
     </div>
   );
-}                                         
+}

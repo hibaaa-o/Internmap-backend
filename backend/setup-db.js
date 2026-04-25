@@ -44,7 +44,7 @@ async function setupDatabase() {
 
   try {
     await dbClient.connect();
-    console.log('🛠️ Creating tables...');
+    console.log('🛠 Creating tables...');
 
     await dbClient.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -79,7 +79,6 @@ async function setupDatabase() {
       );
     `);
     console.log('✅ applications table checked/created');
-
     console.log('🎉 All tables created successfully!');
   } catch (err) {
     console.error('❌ Error creating tables:', err.message);

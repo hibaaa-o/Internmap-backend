@@ -1,6 +1,20 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
 
 export default function Home() {
+
+  const navigate = useNavigate();
+
+  // 🔐 حماية الصفحة
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
 
@@ -42,7 +56,6 @@ export default function Home() {
 
         <div className="grid md:grid-cols-3 gap-8">
 
-          {/* Card 1 */}
           <div className="bg-white border rounded-2xl p-6 shadow-sm hover:shadow-lg transition">
             <h3 className="text-lg font-semibold mb-2">
               Smart Search
@@ -52,7 +65,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Card 2 */}
           <div className="bg-white border rounded-2xl p-6 shadow-sm hover:shadow-lg transition">
             <h3 className="text-lg font-semibold mb-2">
               Map Exploration
@@ -62,7 +74,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Card 3 */}
           <div className="bg-white border rounded-2xl p-6 shadow-sm hover:shadow-lg transition">
             <h3 className="text-lg font-semibold mb-2">
               Track Progress
@@ -73,42 +84,6 @@ export default function Home() {
           </div>
 
         </div>
-      </div>
-
-      {/* STATS */}
-      <div className="bg-gray-50 py-16">
-
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-16 text-center">
-
-          <div>
-            <h2 className="text-4xl font-bold text-purple-600 mb-2">
-              500+
-            </h2>
-            <p className="text-gray-600">
-              Companies
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-4xl font-bold text-purple-600 mb-2">
-              1000+
-            </h2>
-            <p className="text-gray-600">
-              Internships
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-4xl font-bold text-purple-600 mb-2">
-              95%
-            </h2>
-            <p className="text-gray-600">
-              Success Rate
-            </p>
-          </div>
-
-        </div>
-
       </div>
 
       {/* FOOTER */}

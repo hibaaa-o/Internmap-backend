@@ -12,7 +12,7 @@ export default function CompanySignup() {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
@@ -20,18 +20,36 @@ export default function CompanySignup() {
       return;
     }
 
-    // تسجيل وهمي
-    localStorage.setItem("user", "company");
+    try {
+      const response = await fetch("http://localhost:5000/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          role: "company",
+        }),
+      });
 
-    navigate("/"); // يرجع للهوم
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Company account created successfully");
+        navigate("/company-login");
+      } else {
+        alert(data.error || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Register error:", error);
+      alert("Server error");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-
       <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-
-        {/* Logo */}
         <div className="flex items-center gap-3 mb-6 justify-center">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center">
             <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
@@ -42,11 +60,10 @@ export default function CompanySignup() {
         </div>
 
         <h2 className="text-xl font-semibold mb-6 text-center">
-          Create Company Account 
+          Create Company Account
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <input
             type="text"
             placeholder="Company Name"
@@ -105,10 +122,8 @@ export default function CompanySignup() {
           <button className="w-full bg-purple-600 text-white py-3 rounded-lg">
             Create Account
           </button>
-
         </form>
 
-        {/* رجوع */}
         <p className="text-center mt-4 text-sm">
           Already have an account?{" "}
           <span
@@ -118,7 +133,6 @@ export default function CompanySignup() {
             Sign In
           </span>
         </p>
-
       </div>
     </div>
   );
